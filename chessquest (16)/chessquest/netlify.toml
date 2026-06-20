@@ -1,0 +1,30 @@
+# netlify.toml -- deploy config for ChessQuest
+#
+# Static SPA build via Vite. No serverless functions are required for the
+# default (free, rule-based coach) build. The WASM engine is served as a
+# plain static asset from /engine/.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Serve the WASM engine with the correct MIME type and long-lived caching.
+# (The lite single-threaded engine does NOT require COOP/COEP cross-origin
+# isolation headers, which is exactly why it was chosen -- it works on
+# Netlify's free tier with zero special configuration.)
+[[headers]]
+  for = "/engine/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/engine/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# SPA fallback: all routes resolve to index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
